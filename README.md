@@ -1,157 +1,147 @@
-# ChatGPT Cleaner
+# 🧹 ChatGPT Cleaner
 
-A Chrome extension that bulk deletes ChatGPT conversations while preserving project and pinned messages.
+**Bulk delete ChatGPT conversations instantly. Keep what matters, nuke the rest.**
 
-## Features
+Tired of hundreds of old chats cluttering your ChatGPT sidebar? ChatGPT Cleaner lets you select and delete conversations in bulk — with smart protection for your pinned chats, project conversations, and recent work.
 
-- **Bulk Delete**: Select and delete multiple ChatGPT conversations at once
-- **Auto Delete**: One-click scan + delete of all conversations that match your filters
-- **Smart Filtering**: Automatically identifies and preserves:
-  - Pinned chats
-  - Project-based chats
-  - Recent chats (configurable)
-- **Overlay Panel**: Injected floating panel on ChatGPT for easy management
-- **Popup UI**: Quick actions and settings from the extension popup
-- **Configurable**: Set custom filters for what to keep/delete
+---
 
-## Installation
+## ✨ Features
 
-### Development Setup
+| Feature | Description |
+|---------|-------------|
+| **Bulk Delete** | Select multiple chats and delete them all at once |
+| **Auto Delete** | One-click scan + delete everything that matches your filters |
+| **Smart Protection** | Automatically skips pinned chats, project chats, and recent conversations |
+| **Keyword Filtering** | Keep or delete chats based on title keywords (Pro) |
+| **Rate-Limit Safe** | Built-in pacing and automatic fallback — won't get you banned |
+| **Live Progress** | Real-time progress bar, ETA, and batch timer |
+| **Dark Mode** | Looks great in both light and dark themes |
 
-1. **Clone or download this repository**
+---
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## 🚀 Install (30 seconds)
 
-3. **Build the extension**
-   ```bash
-   npm run build
-   ```
+### Option A: Direct Download (Recommended)
 
-4. **Load in Chrome**
-   - Open Chrome and go to `chrome://extensions`
-   - Enable **Developer mode** (top right)
-   - Click **Load unpacked**
-   - Select the `dist` folder from this project
+1. **Download** the latest release: [chatgpt-cleaner-v1.0.0.zip](https://github.com/theDarkHorse17/chatgpt-cleanr/releases/latest)
+2. **Unzip** the file
+3. Open Chrome → `chrome://extensions/`
+4. Enable **Developer mode** (top right toggle)
+5. Click **Load unpacked** → select the `dist` folder
+6. Pin the extension to your toolbar
 
-5. **Pin the extension**
-   - Click the puzzle piece icon in Chrome's toolbar
-   - Find "ChatGPT Cleaner" and click the pin icon
+### Option B: Build from Source
 
-### Usage
+```bash
+git clone https://github.com/theDarkHorse17/chatgpt-cleanr.git
+cd chatgpt-cleanr
+npm install
+npm run build
+```
 
-1. **Open ChatGPT**
-   - Navigate to [chatgpt.com](https://chatgpt.com) or [chat.openai.com](https://chat.openai.com)
+Then load the `dist` folder as above.
 
-2. **Use the Overlay Panel**
-   - The overlay panel will appear automatically (if enabled in settings)
-   - Or press `Ctrl+Shift+G` to toggle it
+---
 
-3. **Scan Chats**
-   - Click the **Scan** button to load all your chats
-   - The extension will scroll the sidebar to load all conversations
+## 📖 How to Use
 
-4. **Select Chats to Delete**
-   - Use the filter tags to view specific chat types
-   - Click on chats to select/deselect them
-   - Use **Select All** to select all deletable chats
+1. Go to [chatgpt.com](https://chatgpt.com)
+2. Click the **ChatGPT Cleaner** icon in your toolbar
+3. The extension auto-scans your sidebar and shows all chats
+4. **Select** the chats you want to delete (or use filters)
+5. Click **Delete** — done
 
-5. **Delete Chats**
-   - Click the **Delete** button
-   - Confirm the deletion in the dialog
-   - Watch the progress as chats are deleted
+### Filters
 
-6. **Auto Delete**
-   - Click the **Auto Delete** button in the popup or overlay
-   - The extension scans your chats, selects every conversation your filters allow to delete, and shows a confirmation
-   - Confirm once to delete them all automatically
-   - Turn off "Confirm before auto-delete" in Settings to skip the confirmation
+| Filter | What it does |
+|--------|-------------|
+| **All** | Shows every chat |
+| **Deletable** | Shows only chats that can be deleted |
+| **Pinned** | Shows only pinned chats |
+| **Project** | Shows only project-based chats |
+| **Recent** | Shows chats from the last 7 days |
 
 ### Settings
 
-Access settings by clicking the **Settings** tab in the popup:
+Click the **Settings** tab to configure:
 
-- **Keep pinned chats**: Preserve all pinned conversations
-- **Keep project chats**: Preserve project-based conversations
-- **Keep recent chats (days)**: Keep chats newer than X days
-- **Deletion delay (ms)**: Time between deletions (default: 1500ms)
-- **Show overlay on ChatGPT**: Auto-show the overlay panel
-- **Confirm before auto-delete**: Show confirmation dialog before auto-delete runs
-- **Keep keywords**: Comma-separated keywords to preserve
-- **Delete keywords**: Comma-separated keywords to force deletion
+- **Keep pinned chats** — never delete pinned conversations
+- **Keep project chats** — preserve project-based work
+- **Keep recent chats** — set how many days back to protect
+- **Deletion delay** — time between deletions (default: 5s)
+- **Keywords** — (Pro) keep or delete by title keywords
 
-## Development
+---
+
+## 🆓 Free vs Pro
+
+| | Free | Pro |
+|---|------|-----|
+| Bulk delete | ✅ | ✅ |
+| Smart protection | ✅ | ✅ |
+| Daily deletes | 10/day | 75/day |
+| Auto Delete | ❌ | ✅ |
+| Keyword filtering | ❌ | ✅ |
+| **Price** | **$0** | **$3.99/mo** |
+
+Get Pro at [chatgptcleaner.com/pricing](https://chatgptcleaner.com/pricing)
+
+---
+
+## 🔒 Privacy
+
+- **No data leaves your browser** — everything runs locally
+- **No accounts required** — just install and use
+- **Only accesses ChatGPT** — no other websites tracked
+- **Settings sync** via Chrome's built-in sync storage
+
+---
+
+## ⚠️ Important Notes
+
+- **Keep the ChatGPT tab open** while deleting — the extension needs the page loaded
+- **Deletion is permanent** — ChatGPT has no undo for deleted conversations
+- **Back up important chats** before bulk deletion
+- **Rate limiting** — the extension auto-paces deletions and falls back to DOM mode if needed
+
+---
+
+## 🛠️ For Developers
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run lint         # Run linter
+```
 
 ### Tech Stack
 
-- **Vite** - Build tool
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
+- **Vite** — Build tool
+- **React 19** — UI framework
+- **TypeScript** — Type safety
+- **Tailwind CSS** — Styling
 - **Chrome Extension Manifest V3**
 
 ### Project Structure
 
 ```
-chatgpt-cleaner/
-├── src/
-│   ├── popup/          # Extension popup UI
-│   ├── content/        # Injected into ChatGPT
-│   ├── background/     # Service worker
-│   └── shared/         # Shared types and utilities
-├── manifest.json       # Chrome extension manifest
-├── vite.config.ts      # Vite configuration
-└── package.json
+src/
+├── popup/          # Extension popup UI (React)
+├── content/        # Injected into ChatGPT (DOM manipulation)
+├── background/     # Service worker
+└── shared/         # Types, utils, license validation
 ```
 
-### Commands
+---
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run lint` - Run linter
-
-### How It Works
-
-1. **Content Script** (`src/content/`)
-   - Injected into ChatGPT pages
-   - Scans the sidebar to extract chat metadata
-   - Simulates UI clicks to delete conversations
-   - Injects the overlay panel
-
-2. **Popup** (`src/popup/`)
-   - Provides quick actions and settings
-   - Communicates with content script via Chrome messaging
-
-3. **Background** (`src/background/`)
-   - Service worker for extension lifecycle
-   - Handles settings persistence
-
-### ChatGPT Selectors
-
-The extension uses multiple fallback selectors to handle ChatGPT's frequently changing DOM:
-
-- Sidebar navigation
-- Chat items in the list
-- Pin indicators
-- Project indicators
-- Delete buttons and confirmation dialogs
-
-## Important Notes
-
-- **Deletion is permanent**: ChatGPT doesn't have an undo for deleted conversations
-- **Rate limiting**: The extension adds delays between deletions to avoid being flagged
-- **DOM changes**: ChatGPT updates its UI frequently, which may break selectors
-- **Backup first**: Consider exporting important conversations before bulk deletion
-
-## Privacy
-
-- No data is sent to external servers
-- All operations happen locally in your browser
-- The extension only accesses ChatGPT pages
-- Settings are stored in Chrome's sync storage
-
-## License
+## 📄 License
 
 MIT
+
+---
+
+<p align="center">
+  <a href="https://github.com/theDarkHorse17/chatgpt-cleanr/releases/latest">Download Latest Release</a>
+</p>
