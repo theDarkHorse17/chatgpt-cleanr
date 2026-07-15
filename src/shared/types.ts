@@ -115,4 +115,4 @@ export const DEFAULT_FILTER_CONFIG: FilterConfig = {
 
 // Free tier constants
 export const FREE_DAILY_DELETE_LIMIT = 10
-export const PRO_DAILY_DELETE_LIMIT = Infinity
+export const PRO_DAILY_DELETE_LIMIT = 75
