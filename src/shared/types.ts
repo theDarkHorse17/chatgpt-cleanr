@@ -84,6 +84,7 @@ export type MessageType =
   | 'SETTINGS_UPDATED'
   | 'SHOW_OVERLAY'
   | 'HIDE_OVERLAY'
+  | 'REFRESH_SIDEBAR'
 
 export interface Message {
   type: MessageType

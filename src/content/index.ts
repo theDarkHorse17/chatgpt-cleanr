@@ -126,6 +126,16 @@ async function runDeletion(
     )
 
     broadcastComplete(progress)
+
+    // Force sidebar refresh after deletion completes
+    // The API marks chats as hidden server-side, but the sidebar DOM is stale.
+    // A soft reload forces ChatGPT's React app to re-fetch and re-render.
+    setTimeout(() => {
+      try {
+        window.location.reload()
+      } catch { /* ignore */ }
+    }, 1500)
+
     return progress
   } finally {
     isDeleting = false
@@ -302,6 +312,13 @@ function handleMessage(
       } else {
         sendResponse({ success: false, message: 'No active deletion to cancel' })
       }
+      return true
+
+    case 'REFRESH_SIDEBAR':
+      sendResponse({ success: true })
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
       return true
 
     default:
