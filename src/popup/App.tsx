@@ -49,7 +49,7 @@ function App() {
   const [licenseInput, setLicenseInput] = useState('')
   const [licenseMsg, setLicenseMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
-  // Load settings + tier on mount
+  // Load settings + tier on mount, then auto-scan if on ChatGPT
   useEffect(() => {
     chrome.storage.sync.get('settings', (result) => {
       if (result.settings) {
@@ -57,6 +57,15 @@ function App() {
       }
     })
     refreshTier()
+
+    // Auto-scan if we're on ChatGPT and no chats loaded yet
+    setTimeout(() => {
+      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        if (tab?.url?.includes('chatgpt.com')) {
+          handleScan()
+        }
+      })
+    }, 500)
   }, [])
 
   // Save settings when they change
