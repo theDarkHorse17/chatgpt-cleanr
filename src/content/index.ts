@@ -85,6 +85,9 @@ function serializeProgress(progress: DeletionProgress) {
     currentChat: progress.currentChat,
     currentChatError: progress.currentChatError,
     status: progress.status,
+    batchNumber: progress.batchNumber,
+    batchTotal: progress.batchTotal,
+    batchElapsedMs: progress.batchElapsedMs,
   }
 }
 

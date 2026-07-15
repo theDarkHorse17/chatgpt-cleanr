@@ -929,3 +929,27 @@ body {
   background: var(--gcc-danger-glow);
   color: var(--gcc-danger);
 }
+
+/* ─── Batch timer ─── */
+.gcc-batch-timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--gcc-bg);
+  border-radius: 5px;
+  border: 1px solid var(--gcc-border-light);
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.gcc-batch-label {
+  font-weight: 600;
+  color: var(--gcc-text);
+}
+
+.gcc-batch-elapsed {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--gcc-primary);
+}

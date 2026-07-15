@@ -386,6 +386,7 @@ export async function deleteChats(
     const batchStart = batchIdx * BATCH_SIZE
     const batchEnd = Math.min(batchStart + BATCH_SIZE, chats.length)
     const batch = chats.slice(batchStart, batchEnd)
+    const batchStartTime = Date.now()
 
     log(`deleteChats: === BATCH ${batchIdx + 1}/${totalBatches} (${batch.length} chats) ===`)
 
@@ -399,6 +400,9 @@ export async function deleteChats(
       }
 
       progress.currentChat = `[${globalIndex + 1}/${chats.length}] ${chat.title}`
+      progress.batchNumber = batchIdx + 1
+      progress.batchTotal = totalBatches
+      progress.batchElapsedMs = Date.now() - batchStartTime
       onProgress?.(progress)
 
       log(`deleteChats: [${globalIndex + 1}/${chats.length}] deleting "${chat.title}"`)
@@ -411,6 +415,7 @@ export async function deleteChats(
         progress.failed++
       }
 
+      progress.batchElapsedMs = Date.now() - batchStartTime
       onProgress?.(progress)
 
       // Delay within batch: base delay + progressive increase
@@ -426,6 +431,7 @@ export async function deleteChats(
       const cooldown = BATCH_COOLDOWN_MIN_MS + Math.random() * (BATCH_COOLDOWN_MAX_MS - BATCH_COOLDOWN_MIN_MS)
       log(`deleteChats: batch ${batchIdx + 1} done — cooling down ${Math.round(cooldown / 1000)}s before next batch (${progress.completed} ok, ${progress.failed} fail)`)
       progress.currentChat = `Cooldown ${Math.round(cooldown / 1000)}s...`
+      progress.batchElapsedMs = Date.now() - batchStartTime
       onProgress?.(progress)
       await sleep(cooldown)
     }

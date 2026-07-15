@@ -35,6 +35,10 @@ export interface DeletionProgress {
   currentChatError?: string
   status: 'idle' | 'scanning' | 'deleting' | 'completed' | 'error'
   error?: string
+  // Batch timer
+  batchNumber?: number
+  batchTotal?: number
+  batchElapsedMs?: number
 }
 
 // Subscription tier

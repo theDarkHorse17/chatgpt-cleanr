@@ -21,6 +21,14 @@ interface ChatPreview {
   reason?: string
 }
 
+function formatElapsedMs(ms: number): string {
+  const secs = Math.floor(ms / 1000)
+  const mins = Math.floor(secs / 60)
+  const remSecs = secs % 60
+  if (mins > 0) return `${mins}m ${remSecs}s`
+  return `${remSecs}s`
+}
+
 function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [chats, setChats] = useState<ChatPreview[]>([])
@@ -578,6 +586,18 @@ function App() {
                   <span className="gcc-progress-stat-label">Total</span>
                 </div>
               </div>
+
+              {/* Batch timer */}
+              {deletionProgress.batchNumber != null && deletionProgress.batchTotal != null && (
+                <div className="gcc-batch-timer">
+                  <span className="gcc-batch-label">
+                    Batch {deletionProgress.batchNumber}/{deletionProgress.batchTotal}
+                  </span>
+                  <span className="gcc-batch-elapsed">
+                    {formatElapsedMs(deletionProgress.batchElapsedMs || 0)}
+                  </span>
+                </div>
+              )}
 
               {deletionProgress.currentChat && (
                 <div className="gcc-progress-current">
