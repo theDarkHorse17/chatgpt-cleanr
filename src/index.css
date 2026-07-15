@@ -964,3 +964,95 @@ body {
   background: var(--gcc-danger-glow);
   color: var(--gcc-danger);
 }
+
+/* ─── Rate limit notice ─── */
+.gcc-rate-limit-notice {
+  padding: 8px 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--gcc-radius-sm);
+  margin-top: 8px;
+}
+
+.gcc-rate-limit-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gcc-amber);
+  margin-bottom: 3px;
+}
+
+.gcc-rate-limit-text {
+  font-size: 11px;
+  color: var(--gcc-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 5px;
+}
+
+/* ─── Playwright fallback section ─── */
+.gcc-playwright-info {
+  font-size: 11px;
+  color: var(--gcc-text-secondary);
+  line-height: 1.5;
+}
+
+.gcc-playwright-info p {
+  margin: 0 0 8px 0;
+}
+
+.gcc-playwright-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.gcc-playwright-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--gcc-text-secondary);
+}
+
+.gcc-playwright-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 50%;
+  background: var(--gcc-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.gcc-playwright-cmd {
+  display: block;
+  padding: 6px 8px;
+  background: var(--gcc-bg);
+  border: 1px solid var(--gcc-border-light);
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 10px;
+  color: var(--gcc-text);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.gcc-playwright-options {
+  font-size: 10px;
+  color: var(--gcc-text-muted);
+  line-height: 1.6;
+}
+
+.gcc-playwright-options code {
+  padding: 1px 4px;
+  background: var(--gcc-bg);
+  border: 1px solid var(--gcc-border-light);
+  border-radius: 3px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 9px;
+}

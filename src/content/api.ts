@@ -11,6 +11,17 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Thrown when ChatGPT returns HTTP 429 (rate limited).
+ * The caller can catch this to suggest the Playwright fallback.
+ */
+export class RateLimitError extends Error {
+  constructor(message = 'ChatGPT rate limit reached (HTTP 429)') {
+    super(message)
+    this.name = 'RateLimitError'
+  }
+}
+
+/**
  * Add random jitter to a delay to look more human-like.
  * Returns delay ± 20% random variation.
  */
@@ -154,6 +165,10 @@ export async function deleteChatViaApi(
       if (isRateLimited(response)) {
         lastError = `Rate limited (HTTP ${response.status})`
         log(`deleteChatViaApi: rate limited for "${chat.title}"`)
+        // On the last attempt, throw a RateLimitError so callers can detect it
+        if (attempt === maxRetries) {
+          throw new RateLimitError()
+        }
         continue // Retry with backoff
       }
 

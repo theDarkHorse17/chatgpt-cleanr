@@ -39,6 +39,8 @@ export interface DeletionProgress {
   batchNumber?: number
   batchTotal?: number
   batchElapsedMs?: number
+  // Rate limit
+  rateLimited?: boolean
 }
 
 // Subscription tier

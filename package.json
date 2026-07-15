@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "bash build.sh",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "delete:playwright": "node scripts/delete-playwright.js",
+    "delete:playwright:dry": "node scripts/delete-playwright.js --dry-run"
   },
   "dependencies": {
     "react": "^19.2.7",
@@ -21,6 +23,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
+    "playwright": "^1.52.0",
     "tailwindcss": "^4.3.2",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"

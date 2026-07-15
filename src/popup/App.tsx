@@ -611,6 +611,21 @@ function App() {
                 </div>
               )}
 
+              {deletionProgress.rateLimited && (
+                <div className="gcc-rate-limit-notice">
+                  <div className="gcc-rate-limit-title">Rate limited by ChatGPT</div>
+                  <div className="gcc-rate-limit-text">
+                    API deletions are paused. Use the Playwright fallback to continue deleting via browser automation.
+                  </div>
+                  <button
+                    className="gcc-link-btn"
+                    onClick={() => setActiveTab('settings')}
+                  >
+                    View Playwright instructions
+                  </button>
+                </div>
+              )}
+
               <button
                 className="gcc-btn gcc-btn-danger gcc-cancel-btn"
                 onClick={() => {
@@ -725,6 +740,36 @@ function App() {
                 step="100"
               />
               <div className="gcc-input-hint">Time between each deletion. Batches auto-pause 45-75s every 22 chats.</div>
+            </div>
+          </div>
+
+          <div className="gcc-settings-group">
+            <div className="gcc-settings-title">Playwright Fallback</div>
+            <div className="gcc-playwright-info">
+              <p>When the API is rate-limited, use the Playwright script to delete chats via browser automation. This runs outside the extension and bypasses API limits.</p>
+              <div className="gcc-playwright-steps">
+                <div className="gcc-playwright-step">
+                  <span className="gcc-playwright-step-num">1</span>
+                  <span>Close Chrome, then relaunch with remote debugging:</span>
+                </div>
+                <code className="gcc-playwright-cmd">
+                  /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+                </code>
+                <div className="gcc-playwright-step">
+                  <span className="gcc-playwright-step-num">2</span>
+                  <span>Log into ChatGPT in that window</span>
+                </div>
+                <div className="gcc-playwright-step">
+                  <span className="gcc-playwright-step-num">3</span>
+                  <span>Run from the extension folder:</span>
+                </div>
+                <code className="gcc-playwright-cmd">
+                  node scripts/delete-playwright.js
+                </code>
+              </div>
+              <div className="gcc-playwright-options">
+                <strong>Options:</strong> <code>--dry-run</code> <code>--delay=3000</code> <code>--batch-size=20</code> <code>--max=50</code> <code>--keep-pinned</code>
+              </div>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ import {
   findDeleteOption,
   findConfirmButton,
 } from './selectors'
-import { deleteChatViaApi } from './api'
+import { deleteChatViaApi, RateLimitError } from './api'
 
 const DEBUG = true
 
@@ -221,6 +221,7 @@ export interface DeleteResult {
   success: boolean
   method?: 'api' | 'dom'
   error?: string
+  rateLimited?: boolean
 }
 
 /**
@@ -229,11 +230,19 @@ export interface DeleteResult {
  */
 async function deleteChatApi(chat: Chat): Promise<DeleteResult> {
   log(`deleteChatApi: trying API deletion for "${chat.title}"`)
-  const success = await deleteChatViaApi(chat)
-  if (success) {
-    return { success: true, method: 'api' }
+  try {
+    const success = await deleteChatViaApi(chat)
+    if (success) {
+      return { success: true, method: 'api' }
+    }
+    return { success: false, method: 'api', error: 'API delete failed (no token or network error)' }
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      log(`deleteChatApi: rate limited for "${chat.title}"`)
+      return { success: false, method: 'api', error: 'Rate limited by ChatGPT', rateLimited: true }
+    }
+    throw err
   }
-  return { success: false, method: 'api', error: 'API delete failed (no token or network error)' }
 }
 
 /**
@@ -413,6 +422,9 @@ export async function deleteChats(
         progress.completed++
       } else {
         progress.failed++
+        if (result.rateLimited) {
+          progress.rateLimited = true
+        }
       }
 
       progress.batchElapsedMs = Date.now() - batchStartTime
