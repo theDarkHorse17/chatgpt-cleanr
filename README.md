@@ -26,11 +26,11 @@ Tired of hundreds of old chats cluttering your ChatGPT sidebar? ChatGPT Cleaner 
 
 ### Option A: Direct Download (Recommended)
 
-1. **Download** the latest release: [chatgpt-cleaner-v1.0.0.zip](https://github.com/theDarkHorse17/chatgpt-cleanr/releases/latest)
+1. **Download** from [chatgpt-cleaner.vercel.app](https://chatgpt-cleaner.vercel.app)
 2. **Unzip** the file
 3. Open Chrome → `chrome://extensions/`
 4. Enable **Developer mode** (top right toggle)
-5. Click **Load unpacked** → select the `dist` folder
+5. Click **Load unpacked** → select the unzipped folder
 6. Pin the extension to your toolbar
 
 ### Option B: Build from Source
