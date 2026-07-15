@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Cleaner — Bulk Delete ChatGPT Conversations</title>
+  <meta name="description" content="Bulk delete ChatGPT conversations instantly. Free Chrome extension with smart filtering. Keep pinned chats, delete the rest.">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0a0a0a;--card:#141414;--border:#262626;--text:#e5e5e5;--muted:#a3a3a3;--accent:#22c55e;--accent-hover:#16a34a;--glow:rgba(34,197,94,.15)}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;line-height:1.6}
+    .container{max-width:640px;width:100%;text-align:center}
+    .badge{display:inline-block;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:.35rem .85rem;font-size:.75rem;color:var(--muted);letter-spacing:.02em;margin-bottom:1.5rem}
+    h1{font-size:2.75rem;font-weight:700;line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+    h1 span{color:var(--accent)}
+    .sub{color:var(--muted);font-size:1.1rem;margin-bottom:2.5rem;max-width:480px;margin-left:auto;margin-right:auto}
+    .cta{display:inline-flex;align-items:center;gap:.6rem;background:var(--accent);color:#000;font-weight:600;font-size:1rem;padding:.85rem 2rem;border-radius:12px;text-decoration:none;transition:all .2s;border:none;cursor:pointer;box-shadow:0 0 30px var(--glow)}
+    .cta:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 0 40px var(--glow)}
+    .cta svg{width:18px;height:18px}
+    .note{color:var(--muted);font-size:.8rem;margin-top:1rem}
+    .features{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:3rem;text-align:left}
+    .feat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+    .feat-icon{font-size:1.1rem;margin-bottom:.4rem}
+    .feat-title{font-weight:600;font-size:.85rem;margin-bottom:.15rem}
+    .feat-desc{color:var(--muted);font-size:.78rem;line-height:1.4}
+    .install{margin-top:3rem;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+    .install h3{font-size:.9rem;font-weight:600;margin-bottom:.75rem}
+    .steps{list-style:none;counter-reset:step}
+    .steps li{counter-increment:step;padding:.45rem 0;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem}
+    .steps li::before{content:counter(step);background:var(--border);color:var(--text);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;flex-shrink:0}
+    .footer{margin-top:3rem;color:var(--muted);font-size:.75rem}
+    .footer a{color:var(--accent);text-decoration:none}
+    .footer a:hover{text-decoration:underline}
+    @media(max-width:520px){h1{font-size:2rem}.features{grid-template-columns:1fr}.sub{font-size:1rem}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">Free &bull; Open Source &bull; No Data Collected</div>
+    <h1>Clean your<br><span>ChatGPT</span> sidebar</h1>
+    <p class="sub">Bulk delete conversations in one click. Keeps your pinned and project chats safe.</p>
+    <a class="cta" href="chatgpt-cleaner-v1.0.0.zip" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Chrome
+    </a>
+    <p class="note">85KB &bull; Works with Chrome, Edge, Brave</p>
+
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon">&#10003;</div>
+        <div class="feat-title">Bulk Delete</div>
+        <div class="feat-desc">Select and delete hundreds of chats at once</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">&#128274;</div>
+        <div class="feat-title">Smart Protection</div>
+        <div class="feat-desc">Never touches pinned or project chats</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">&#128260;</div>
+        <div class="feat-title">Auto Fallback</div>
+        <div class="feat-desc">Switches to DOM mode if API is rate-limited</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">&#128065;</div>
+        <div class="feat-title">Zero Data</div>
+        <div class="feat-desc">Everything runs locally, nothing leaves your browser</div>
+      </div>
+    </div>
+
+    <div class="install">
+      <h3>How to install</h3>
+      <ol class="steps">
+        <li>Click the download button above</li>
+        <li>Unzip the downloaded file</li>
+        <li>Open <strong>chrome://extensions</strong></li>
+        <li>Enable <strong>Developer mode</strong> (top right)</li>
+        <li>Click <strong>Load unpacked</strong> → select the unzipped folder</li>
+        <li>Pin the extension and go to <strong>chatgpt.com</strong></li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      <a href="https://github.com/theDarkHorse17/chatgpt-cleanr">GitHub</a> &bull;
+      <a href="https://github.com/theDarkHorse17/chatgpt-cleanr/issues">Report a bug</a> &bull;
+      MIT License
+    </div>
+  </div>
+</body>
+</html>
