@@ -592,6 +592,7 @@ function App() {
                 <div className="gcc-batch-timer">
                   <span className="gcc-batch-label">
                     Batch {deletionProgress.batchNumber}/{deletionProgress.batchTotal}
+                    {deletionProgress.mode === 'dom' && <span className="gcc-mode-badge">DOM</span>}
                   </span>
                   <span className="gcc-batch-elapsed">
                     {formatElapsedMs(deletionProgress.batchElapsedMs || 0)}
@@ -613,16 +614,14 @@ function App() {
 
               {deletionProgress.rateLimited && (
                 <div className="gcc-rate-limit-notice">
-                  <div className="gcc-rate-limit-title">Rate limited by ChatGPT</div>
-                  <div className="gcc-rate-limit-text">
-                    API deletions are paused. Use the Playwright fallback to continue deleting via browser automation.
+                  <div className="gcc-rate-limit-title">
+                    {deletionProgress.mode === 'dom' ? 'Switched to DOM mode' : 'Rate limited by ChatGPT'}
                   </div>
-                  <button
-                    className="gcc-link-btn"
-                    onClick={() => setActiveTab('settings')}
-                  >
-                    View Playwright instructions
-                  </button>
+                  <div className="gcc-rate-limit-text">
+                    {deletionProgress.mode === 'dom'
+                      ? 'API limit reached. Continuing via browser clicks. Keep this tab open.'
+                      : 'API rate limited. Switching to DOM mode...'}
+                  </div>
                 </div>
               )}
 
@@ -744,32 +743,12 @@ function App() {
           </div>
 
           <div className="gcc-settings-group">
-            <div className="gcc-settings-title">Playwright Fallback</div>
+            <div className="gcc-settings-title">Automatic Fallback</div>
             <div className="gcc-playwright-info">
-              <p>When the API is rate-limited, use the Playwright script to delete chats via browser automation. This runs outside the extension and bypasses API limits.</p>
-              <div className="gcc-playwright-steps">
-                <div className="gcc-playwright-step">
-                  <span className="gcc-playwright-step-num">1</span>
-                  <span>Close Chrome, then relaunch with remote debugging:</span>
-                </div>
-                <code className="gcc-playwright-cmd">
-                  /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-                </code>
-                <div className="gcc-playwright-step">
-                  <span className="gcc-playwright-step-num">2</span>
-                  <span>Log into ChatGPT in that window</span>
-                </div>
-                <div className="gcc-playwright-step">
-                  <span className="gcc-playwright-step-num">3</span>
-                  <span>Run from the extension folder:</span>
-                </div>
-                <code className="gcc-playwright-cmd">
-                  node scripts/delete-playwright.js
-                </code>
-              </div>
-              <div className="gcc-playwright-options">
-                <strong>Options:</strong> <code>--dry-run</code> <code>--delay=3000</code> <code>--batch-size=20</code> <code>--max=50</code> <code>--keep-pinned</code>
-              </div>
+              <p>When ChatGPT's API rate-limits deletions, the extension automatically switches to <strong>DOM mode</strong> — it clicks through the ChatGPT UI like a human would.</p>
+              <p style={{ margin: '6px 0 0 0', color: 'var(--gcc-amber)', fontWeight: 500 }}>
+                Keep the ChatGPT tab open while DOM mode is active.
+              </p>
             </div>
           </div>
 

@@ -332,23 +332,33 @@ async function deleteChatDom(chat: Chat, delay: number = 5000): Promise<DeleteRe
 /**
  * Delete a single chat using the best available method.
  * Tries API first, falls back to DOM simulation.
- * Adds a delay after each request to avoid automation bans.
+ * If forceDom is true (after rate-limit detected), skips API entirely.
  */
-export async function deleteChat(chat: Chat, delay: number = 5000): Promise<DeleteResult> {
-  log(`deleteChat: starting for "${chat.title}"`)
+export async function deleteChat(
+  chat: Chat,
+  delay: number = 5000,
+  forceDom: boolean = false
+): Promise<DeleteResult> {
+  log(`deleteChat: starting for "${chat.title}" (forceDom=${forceDom})`)
 
   try {
-    // Primary method: backend API (doesn't depend on UI)
-    const apiResult = await deleteChatApi(chat)
-    if (apiResult.success) {
-      // Add delay after API call to avoid automation detection
-      await sleep(jitter(delay))
-      return apiResult
+    if (!forceDom) {
+      // Primary method: backend API (doesn't depend on UI)
+      const apiResult = await deleteChatApi(chat)
+      if (apiResult.success) {
+        await sleep(jitter(delay))
+        return apiResult
+      }
+
+      // If rate-limited, signal to caller to switch to DOM mode
+      if (apiResult.rateLimited) {
+        return apiResult
+      }
+
+      log(`deleteChat: API failed, falling back to DOM for "${chat.title}"`)
     }
 
-    log(`deleteChat: API failed, falling back to DOM for "${chat.title}"`)
-
-    // Fallback: DOM simulation
+    // DOM simulation — either fallback or forced
     const domResult = await deleteChatDom(chat, delay)
     return domResult
   } catch (error) {
@@ -363,11 +373,15 @@ const BATCH_SIZE = 22
 const BATCH_COOLDOWN_MIN_MS = 45_000
 const BATCH_COOLDOWN_MAX_MS = 75_000
 const BASE_DELAY_WITHIN_BATCH = 5000
+// Slower pacing when using DOM mode to avoid detection
+const DOM_DELAY_WITHIN_BATCH = 8000
+const DOM_BATCH_COOLDOWN_MIN_MS = 60_000
+const DOM_BATCH_COOLDOWN_MAX_MS = 90_000
 
 /**
  * Delete multiple chats with progress tracking.
- * Processes in batches of ~22 with long cooldowns between batches
- * to stay under ChatGPT's rate limit.
+ * Processes in batches of ~22 with long cooldowns between batches.
+ * Automatically switches to DOM mode when API is rate-limited.
  */
 export async function deleteChats(
   chats: Chat[],
@@ -382,8 +396,10 @@ export async function deleteChats(
     completed: 0,
     failed: 0,
     status: 'deleting',
+    mode: 'api',
   }
 
+  let useDomMode = false
   const totalBatches = Math.ceil(chats.length / BATCH_SIZE)
 
   for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
@@ -397,7 +413,7 @@ export async function deleteChats(
     const batch = chats.slice(batchStart, batchEnd)
     const batchStartTime = Date.now()
 
-    log(`deleteChats: === BATCH ${batchIdx + 1}/${totalBatches} (${batch.length} chats) ===`)
+    log(`deleteChats: === BATCH ${batchIdx + 1}/${totalBatches} (${batch.length} chats) ${useDomMode ? '[DOM MODE]' : '[API MODE]'} ===`)
 
     for (let i = 0; i < batch.length; i++) {
       const globalIndex = batchStart + i
@@ -415,34 +431,41 @@ export async function deleteChats(
       onProgress?.(progress)
 
       log(`deleteChats: [${globalIndex + 1}/${chats.length}] deleting "${chat.title}"`)
-      const result = await deleteChat(chat, delay)
+      const result = await deleteChat(chat, delay, useDomMode)
       progress.currentChatError = result.error
 
       if (result.success) {
         progress.completed++
       } else {
         progress.failed++
-        if (result.rateLimited) {
+        // Switch to DOM mode on rate limit
+        if (result.rateLimited && !useDomMode) {
+          useDomMode = true
           progress.rateLimited = true
+          progress.mode = 'dom'
+          log('deleteChats: rate limited — switching to DOM mode for remaining deletions')
         }
       }
 
       progress.batchElapsedMs = Date.now() - batchStartTime
       onProgress?.(progress)
 
-      // Delay within batch: base delay + progressive increase
+      // Delay within batch — slower in DOM mode
       if (i < batch.length - 1) {
+        const baseDelay = useDomMode ? DOM_DELAY_WITHIN_BATCH : BASE_DELAY_WITHIN_BATCH
         const progressiveIncrease = Math.floor(i / 5) * 500
-        const withinBatchDelay = jitter(BASE_DELAY_WITHIN_BATCH + progressiveIncrease)
+        const withinBatchDelay = jitter(baseDelay + progressiveIncrease)
         await sleep(withinBatchDelay)
       }
     }
 
     // Cooldown between batches (not after the last batch)
     if (batchIdx < totalBatches - 1 && (shouldContinue?.() ?? true)) {
-      const cooldown = BATCH_COOLDOWN_MIN_MS + Math.random() * (BATCH_COOLDOWN_MAX_MS - BATCH_COOLDOWN_MIN_MS)
-      log(`deleteChats: batch ${batchIdx + 1} done — cooling down ${Math.round(cooldown / 1000)}s before next batch (${progress.completed} ok, ${progress.failed} fail)`)
-      progress.currentChat = `Cooldown ${Math.round(cooldown / 1000)}s...`
+      const cooldownMin = useDomMode ? DOM_BATCH_COOLDOWN_MIN_MS : BATCH_COOLDOWN_MIN_MS
+      const cooldownMax = useDomMode ? DOM_BATCH_COOLDOWN_MAX_MS : BATCH_COOLDOWN_MAX_MS
+      const cooldown = cooldownMin + Math.random() * (cooldownMax - cooldownMin)
+      log(`deleteChats: batch ${batchIdx + 1} done — cooling down ${Math.round(cooldown / 1000)}s (${progress.completed} ok, ${progress.failed} fail) ${useDomMode ? '[DOM MODE]' : ''}`)
+      progress.currentChat = `Cooldown ${Math.round(cooldown / 1000)}s...${useDomMode ? ' (DOM mode)' : ''}`
       progress.batchElapsedMs = Date.now() - batchStartTime
       onProgress?.(progress)
       await sleep(cooldown)

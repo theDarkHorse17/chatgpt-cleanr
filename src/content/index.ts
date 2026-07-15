@@ -88,6 +88,7 @@ function serializeProgress(progress: DeletionProgress) {
     batchNumber: progress.batchNumber,
     batchTotal: progress.batchTotal,
     batchElapsedMs: progress.batchElapsedMs,
+    mode: progress.mode,
     rateLimited: progress.rateLimited,
   }
 }

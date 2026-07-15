@@ -601,6 +601,19 @@ body {
   color: var(--gcc-primary);
 }
 
+.gcc-mode-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--gcc-amber);
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
 /* ─── Settings ─── */
 .gcc-settings {
   flex: 1;

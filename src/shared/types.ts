@@ -39,7 +39,8 @@ export interface DeletionProgress {
   batchNumber?: number
   batchTotal?: number
   batchElapsedMs?: number
-  // Rate limit
+  // Mode tracking
+  mode?: 'api' | 'dom'
   rateLimited?: boolean
 }
 
