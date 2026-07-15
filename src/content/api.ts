@@ -88,9 +88,9 @@ function isRateLimited(response: Response): boolean {
 
 /**
  * Delete a conversation via ChatGPT's backend API.
- * This bypasses the DOM and is more reliable when the UI changes.
+ * Uses PATCH with is_visible:false (soft delete) — the same method ChatGPT's own UI uses.
+ * The DELETE endpoint returns 500; PATCH is the correct approach.
  * Includes exponential backoff with jitter on rate limits.
- * 
  */
 export async function deleteChatViaApi(
   chat: Chat,
@@ -122,22 +122,31 @@ export async function deleteChatViaApi(
       await sleep(backoffDelay)
     }
     
-    log(`deleteChatViaApi: DELETE ${url} (attempt ${attempt + 1})`)
+    log(`deleteChatViaApi: PATCH ${url} (attempt ${attempt + 1})`)
     
     try {
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: 'PATCH',
         credentials: 'include',
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
-          Accept: '*/*',
+          Accept: 'application/json',
           'Content-Type': 'application/json',
+          'Referer': 'https://chatgpt.com/',
+          'Origin': 'https://chatgpt.com',
         },
+        body: JSON.stringify({ is_visible: false }),
       })
 
-      // ChatGPT returns 200/202/204 on success, sometimes 404 if already deleted
-      if (response.ok || response.status === 404) {
+      // Success: 200 OK
+      if (response.ok) {
         log(`deleteChatViaApi: success for "${chat.title}" (status ${response.status})`)
+        return true
+      }
+
+      // 404 = already deleted, treat as success
+      if (response.status === 404) {
+        log(`deleteChatViaApi: conversation already deleted for "${chat.title}"`)
         return true
       }
 
