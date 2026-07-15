@@ -614,7 +614,7 @@ body {
 .gcc-settings-group {
   background: var(--gcc-bg-secondary);
   border-radius: var(--gcc-radius);
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--gcc-border-light);
 }
 
@@ -624,7 +624,7 @@ body {
   color: var(--gcc-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 /* Toggle */
@@ -675,11 +675,11 @@ body {
 
 /* Input */
 .gcc-input-group {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .gcc-input-group + .gcc-input-group {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .gcc-input-label {
@@ -687,12 +687,12 @@ body {
   font-size: 11px;
   font-weight: 500;
   color: var(--gcc-text-secondary);
-  margin-bottom: 3px;
+  margin-bottom: 5px;
 }
 
 .gcc-input {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid var(--gcc-border);
   border-radius: var(--gcc-radius-sm);
   font-size: 12px;
@@ -700,6 +700,7 @@ body {
   background: var(--gcc-bg);
   transition: border-color 0.12s;
   box-sizing: border-box;
+  line-height: 1.4;
 }
 
 .gcc-input:focus {
