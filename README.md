@@ -4,6 +4,8 @@
 
 Tired of hundreds of old chats cluttering your ChatGPT sidebar? ChatGPT Cleaner lets you select and delete conversations in bulk — with smart protection for your pinned chats, project conversations, and recent work.
 
+**🔗 [Download Now](https://chatgpt-cleaner.vercel.app)** — Free, no sign-up required
+
 ---
 
 ## ✨ Features
@@ -143,5 +145,7 @@ MIT
 ---
 
 <p align="center">
-  <a href="https://github.com/theDarkHorse17/chatgpt-cleanr/releases/latest">Download Latest Release</a>
+  <a href="https://chatgpt-cleaner.vercel.app">Download</a> &bull;
+  <a href="https://github.com/theDarkHorse17/chatgpt-cleanr/releases/latest">GitHub Release</a> &bull;
+  <a href="https://github.com/theDarkHorse17/chatgpt-cleanr/issues">Report a Bug</a>
 </p>
