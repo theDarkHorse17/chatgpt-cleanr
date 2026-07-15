@@ -1,6 +1,6 @@
 import type { Message, Settings, Chat, DeletionProgress } from '../shared/types'
 import { DEFAULT_SETTINGS } from '../shared/types'
-import { filterChatsForDeletion, sleep } from '../shared/utils'
+import { filterChatsForDeletion, sleep, getEffectiveTier, incrementUsage, canDeleteMore } from '../shared/utils'
 import { showOverlay, hideOverlay, toggleOverlay, removeOverlay } from './overlay'
 import { scanChats } from './scanner'
 import { deleteChats } from './deleter'
@@ -194,14 +194,31 @@ function handleMessage(
           return true
         }
 
-        runDeletion(chatsToDelete, delay)
-          .then((progress) => {
-            sendResponse({ success: true, progress })
-          })
-          .catch((error) => {
-            console.error('[ChatGPT Cleaner] Delete error:', error)
-            sendResponse({ success: false, error: error.message })
-          })
+        // Check daily limit for free tier (async, fire-and-forget with sendResponse)
+        canDeleteMore().then(({ allowed, remaining, tier }) => {
+          if (!allowed) {
+            sendResponse({
+              success: false,
+              error: `Daily limit reached (${remaining} remaining). Upgrade to Pro for unlimited deletions.`,
+              upgradeRequired: true,
+            })
+            return
+          }
+
+          // Enforce limit: only delete up to remaining
+          const capped = tier === 'free' ? chatsToDelete.slice(0, remaining) : chatsToDelete
+
+          runDeletion(capped, delay)
+            .then((progress) => {
+              incrementUsage(progress.completed).then(() => {
+                sendResponse({ success: true, progress })
+              })
+            })
+            .catch((error) => {
+              console.error('[ChatGPT Cleaner] Delete error:', error)
+              sendResponse({ success: false, error: error.message })
+            })
+        })
       } else {
         sendResponse({ success: false, error: 'Invalid payload' })
       }
@@ -209,51 +226,65 @@ function handleMessage(
 
     case 'AUTO_DELETE_CHATS':
       {
-        const payload = (message.payload && typeof message.payload === 'object'
-          ? message.payload
-          : {}) as { confirmed?: boolean; delay?: number; skipConfirmation?: boolean }
-        const delay = payload.delay || settings.deletionDelay || 5000
-        const skipConfirmation = payload.skipConfirmation ?? !settings.confirmBeforeDelete
+        // Auto-delete is a Pro feature (async check)
+        getEffectiveTier().then((tier) => {
+          if (tier !== 'pro') {
+            sendResponse({
+              success: false,
+              error: 'Auto Delete is a Pro feature. Upgrade to unlock.',
+              upgradeRequired: true,
+            })
+            return
+          }
 
-        scanChats()
-          .then((chats) => {
-            scannedChats = chats
-            const chatsToDelete = filterChatsForDeletion(chats, settings.filterConfig)
+          const payload = (message.payload && typeof message.payload === 'object'
+            ? message.payload
+            : {}) as { confirmed?: boolean; delay?: number; skipConfirmation?: boolean }
+          const delay = payload.delay || settings.deletionDelay || 5000
+          const skipConfirmation = payload.skipConfirmation ?? !settings.confirmBeforeDelete
 
-            if (chatsToDelete.length === 0) {
-              sendResponse({ success: true, deleted: 0, message: 'No deletable chats found.' })
-              return
-            }
+          scanChats()
+            .then((chats) => {
+              scannedChats = chats
+              const chatsToDelete = filterChatsForDeletion(chats, settings.filterConfig)
 
-            if (!payload.confirmed && !skipConfirmation) {
-              sendResponse({
-                success: true,
-                requiresConfirmation: true,
-                count: chatsToDelete.length,
-                chats: chatsToDelete.map((chat) => ({
-                  id: chat.id,
-                  title: chat.title,
-                  lastModified: chat.lastModified.toISOString(),
-                  isPinned: chat.isPinned,
-                  isProject: chat.isProject,
-                })),
-              })
-              return
-            }
+              if (chatsToDelete.length === 0) {
+                sendResponse({ success: true, deleted: 0, message: 'No deletable chats found.' })
+                return
+              }
 
-            runDeletion(chatsToDelete, delay)
-              .then((progress) => {
-                sendResponse({ success: true, progress })
-              })
-              .catch((error) => {
-                console.error('[ChatGPT Cleaner] Auto-delete error:', error)
-                sendResponse({ success: false, error: error.message })
-              })
-          })
-          .catch((error) => {
-            console.error('[ChatGPT Cleaner] Auto-delete scan error:', error)
-            sendResponse({ success: false, error: error.message })
-          })
+              if (!payload.confirmed && !skipConfirmation) {
+                sendResponse({
+                  success: true,
+                  requiresConfirmation: true,
+                  count: chatsToDelete.length,
+                  chats: chatsToDelete.map((chat) => ({
+                    id: chat.id,
+                    title: chat.title,
+                    lastModified: chat.lastModified.toISOString(),
+                    isPinned: chat.isPinned,
+                    isProject: chat.isProject,
+                  })),
+                })
+                return
+              }
+
+              runDeletion(chatsToDelete, delay)
+                .then((progress) => {
+                  incrementUsage(progress.completed).then(() => {
+                    sendResponse({ success: true, progress })
+                  })
+                })
+                .catch((error) => {
+                  console.error('[ChatGPT Cleaner] Auto-delete error:', error)
+                  sendResponse({ success: false, error: error.message })
+                })
+            })
+            .catch((error) => {
+              console.error('[ChatGPT Cleaner] Auto-delete scan error:', error)
+              sendResponse({ success: false, error: error.message })
+            })
+        })
       }
       return true
 

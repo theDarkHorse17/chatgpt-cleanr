@@ -1,4 +1,6 @@
-import type { Chat, FilterConfig } from './types'
+import type { Chat, FilterConfig, UsageData, LicenseData, Tier } from './types'
+import { FREE_DAILY_DELETE_LIMIT, PRO_DAILY_DELETE_LIMIT } from './types'
+import { getTier, isLicenseValid } from './license'
 
 /**
  * Format a date relative to now (e.g., "2 days ago", "just now")
@@ -125,4 +127,92 @@ export function sleep(ms: number): Promise<void> {
  */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
+}
+
+// ─── Usage / Tier helpers ────────────────────────────────────────────
+
+function todayKey(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/**
+ * Load usage data from chrome.storage.local
+ */
+export function loadUsage(): Promise<UsageData> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get('usage', (result) => {
+      const stored = result.usage as UsageData | undefined
+      if (stored && stored.date === todayKey()) {
+        resolve(stored)
+      } else {
+        resolve({ date: todayKey(), deletions: 0 })
+      }
+    })
+  })
+}
+
+/**
+ * Save usage data to chrome.storage.local
+ */
+export function saveUsage(usage: UsageData): void {
+  chrome.storage.local.set({ usage })
+}
+
+/**
+ * Increment today's deletion count and return the new count
+ */
+export async function incrementUsage(count: number): Promise<number> {
+  const usage = await loadUsage()
+  usage.deletions += count
+  saveUsage(usage)
+  return usage.deletions
+}
+
+/**
+ * Load license from chrome.storage.sync
+ */
+export function loadLicense(): Promise<LicenseData | null> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get('license', (result) => {
+      resolve(result.license || null)
+    })
+  })
+}
+
+/**
+ * Save license to chrome.storage.sync
+ */
+export function saveLicense(license: LicenseData | null): void {
+  if (license) {
+    chrome.storage.sync.set({ license })
+  } else {
+    chrome.storage.sync.remove('license')
+  }
+}
+
+/**
+ * Get the effective tier (checks license validity + expiry)
+ */
+export async function getEffectiveTier(): Promise<Tier> {
+  const license = await loadLicense()
+  return getTier(license)
+}
+
+/**
+ * Get the daily delete limit for a given tier
+ */
+export function getDeleteLimit(tier: Tier): number {
+  return tier === 'pro' ? PRO_DAILY_DELETE_LIMIT : FREE_DAILY_DELETE_LIMIT
+}
+
+/**
+ * Check if the user can delete more chats today
+ */
+export async function canDeleteMore(): Promise<{ allowed: boolean; remaining: number; limit: number; tier: Tier }> {
+  const tier = await getEffectiveTier()
+  const usage = await loadUsage()
+  const limit = getDeleteLimit(tier)
+  const remaining = Math.max(0, limit - usage.deletions)
+  return { allowed: remaining > 0, remaining, limit, tier }
 }

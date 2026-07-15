@@ -795,3 +795,137 @@ body {
 }
 
 .gcc-close:hover { color: var(--gcc-text); }
+
+/* ─── Tier / Pro badge ─── */
+.gcc-badge-pro {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #fff;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.gcc-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ─── Usage bar ─── */
+.gcc-usage-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--gcc-bg-secondary);
+  border-bottom: 1px solid var(--gcc-border-light);
+  font-size: 11px;
+}
+
+.gcc-usage-text {
+  color: var(--gcc-text-secondary);
+  font-weight: 500;
+}
+
+.gcc-upgrade-link {
+  background: none;
+  border: none;
+  color: var(--gcc-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.gcc-upgrade-link:hover {
+  text-decoration: underline;
+}
+
+/* ─── Locked button (free tier auto-delete) ─── */
+.gcc-btn-locked {
+  background: var(--gcc-bg-tertiary);
+  color: var(--gcc-text-muted);
+  border: 1px solid var(--gcc-border);
+  cursor: not-allowed;
+}
+
+/* ─── Locked section (pro-gated settings) ─── */
+.gcc-locked-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.gcc-locked-overlay {
+  padding: 16px 12px;
+  text-align: center;
+  background: var(--gcc-bg-tertiary);
+  border-radius: var(--gcc-radius-sm);
+  margin-top: 4px;
+}
+
+.gcc-locked-text {
+  font-size: 12px;
+  color: var(--gcc-text-secondary);
+  line-height: 1.5;
+}
+
+.gcc-locked-text a {
+  color: var(--gcc-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.gcc-locked-text a:hover {
+  text-decoration: underline;
+}
+
+/* ─── License section ─── */
+.gcc-license-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gcc-license-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--gcc-text-secondary);
+}
+
+.gcc-license-info strong {
+  color: var(--gcc-primary);
+}
+
+.gcc-license-msg {
+  font-size: 12px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: var(--gcc-radius-sm);
+}
+
+.gcc-license-msg.success {
+  background: var(--gcc-primary-glow);
+  color: var(--gcc-primary);
+}
+
+.gcc-license-msg.error {
+  background: var(--gcc-danger-glow);
+  color: var(--gcc-danger);
+}

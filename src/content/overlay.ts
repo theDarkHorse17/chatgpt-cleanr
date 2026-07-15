@@ -1,6 +1,6 @@
 import type { Chat, FilterConfig, Settings } from '../shared/types'
 import { DEFAULT_FILTER_CONFIG, DEFAULT_SETTINGS } from '../shared/types'
-import { shouldKeepChat, formatRelativeTime, sleep } from '../shared/utils'
+import { shouldKeepChat, formatRelativeTime, sleep, getEffectiveTier } from '../shared/utils'
 import { scanChats } from './scanner'
 import { deleteChats } from './deleter'
 import { findChatItems, getChatHref, getChatTitle, findMoreOptionsButton } from './selectors'
@@ -160,6 +160,28 @@ function initOverlay(): void {
   // Auto Delete button
   const autoDeleteBtn = document.getElementById('gcc-auto-delete')
   autoDeleteBtn?.addEventListener('click', async () => {
+    // Check tier — auto-delete is Pro only
+    const tier = await getEffectiveTier()
+    if (tier !== 'pro') {
+      const chatList = document.getElementById('gcc-chat-list')
+      if (chatList) {
+        chatList.innerHTML = `
+          <div class="gcc-status" style="text-align:center; padding:20px;">
+            <div style="font-size:24px; margin-bottom:8px;">\u{1F512}</div>
+            <div style="font-weight:600; margin-bottom:4px;">Pro Feature</div>
+            <div style="font-size:13px; color:var(--gcc-text-secondary);">Auto Delete requires a Pro license.</div>
+            <div style="margin-top:12px;">
+              <a href="https://chatgptcleaner.com/pricing" target="_blank" rel="noopener"
+                 style="color:var(--gcc-primary); text-decoration:underline; font-weight:500;">
+                Upgrade to Pro
+              </a>
+            </div>
+          </div>
+        `
+      }
+      return
+    }
+
     const settings = await loadSettings()
 
     const chatList = document.getElementById('gcc-chat-list')

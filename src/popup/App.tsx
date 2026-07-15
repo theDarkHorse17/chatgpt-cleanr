@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { Settings, FilterConfig, DeletionProgress } from '../shared/types'
-import { DEFAULT_SETTINGS } from '../shared/types'
-import { shouldKeepChat, formatRelativeTime } from '../shared/utils'
+import type { Settings, FilterConfig, DeletionProgress, Tier, LicenseData } from '../shared/types'
+import { DEFAULT_SETTINGS, FREE_DAILY_DELETE_LIMIT } from '../shared/types'
+import {
+  shouldKeepChat,
+  formatRelativeTime,
+  getEffectiveTier,
+  canDeleteMore,
+  loadLicense,
+  saveLicense,
+} from '../shared/utils'
+import { validateLicenseKey } from '../shared/license'
 
 interface ChatPreview {
   id: string
@@ -25,19 +33,36 @@ function App() {
   const [currentFilter, setCurrentFilter] = useState<string>('all')
   const [deletionProgress, setDeletionProgress] = useState<DeletionProgress | null>(null)
 
-  // Load settings on mount
+  // Tier / license state
+  const [tier, setTier] = useState<Tier>('free')
+  const [license, setLicense] = useState<LicenseData | null>(null)
+  const [usageRemaining, setUsageRemaining] = useState<number>(FREE_DAILY_DELETE_LIMIT)
+  const [licenseInput, setLicenseInput] = useState('')
+  const [licenseMsg, setLicenseMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+
+  // Load settings + tier on mount
   useEffect(() => {
     chrome.storage.sync.get('settings', (result) => {
       if (result.settings) {
         setSettings({ ...DEFAULT_SETTINGS, ...result.settings })
       }
     })
+    refreshTier()
   }, [])
 
   // Save settings when they change
   useEffect(() => {
     chrome.storage.sync.set({ settings })
   }, [settings])
+
+  const refreshTier = async () => {
+    const t = await getEffectiveTier()
+    setTier(t)
+    const lic = await loadLicense()
+    setLicense(lic)
+    const { remaining } = await canDeleteMore()
+    setUsageRemaining(remaining)
+  }
 
   // Listen for deletion progress messages
   useEffect(() => {
@@ -48,10 +73,11 @@ function App() {
         setIsAutoDeleting(true)
       } else if (message.type === 'DELETE_COMPLETE' && message.payload?.progress) {
         setDeletionProgress(message.payload.progress)
-        setTimeout(() => {
+        setTimeout(async () => {
           setDeletionProgress(null)
           setIsDeleting(false)
           setIsAutoDeleting(false)
+          await refreshTier()
           handleScan()
         }, 2000)
       }
@@ -158,10 +184,17 @@ function App() {
       chrome.tabs.sendMessage(
         tab.id,
         { type: 'DELETE_CHATS', payload: { chatIds: chatIdsToDelete, delay: settings.deletionDelay } },
-        (response) => {
+        async (response) => {
           if (chrome.runtime.lastError) {
             showStatus('Could not delete chats', 'error')
             setIsDeleting(false)
+            return
+          }
+
+          if (response?.upgradeRequired) {
+            showStatus('Daily limit reached. Upgrade to Pro for unlimited.', 'error')
+            setIsDeleting(false)
+            await refreshTier()
             return
           }
 
@@ -170,6 +203,7 @@ function App() {
             const ok = n - failed
             showStatus(failed > 0 ? `Deleted ${ok} (${failed} failed)` : `Deleted ${ok} chats`, failed > 0 ? 'error' : 'success')
             setSelectedChats(new Set())
+            await refreshTier()
             handleScan()
           } else {
             showStatus(response?.error || 'Delete failed', 'error')
@@ -185,6 +219,11 @@ function App() {
 
   // Auto-delete
   const handleAutoDelete = async () => {
+    if (tier !== 'pro') {
+      showStatus('Auto Delete is a Pro feature. Upgrade to unlock.', 'error')
+      return
+    }
+
     setIsAutoDeleting(true)
     showStatus('Scanning for deletable chats...')
 
@@ -204,6 +243,11 @@ function App() {
             (response) => {
               if (chrome.runtime.lastError) {
                 showStatus('Could not connect to ChatGPT', 'error')
+                resolve(false)
+                return
+              }
+              if (response?.upgradeRequired) {
+                showStatus('Auto Delete is a Pro feature. Upgrade to unlock.', 'error')
                 resolve(false)
                 return
               }
@@ -230,9 +274,14 @@ function App() {
       chrome.tabs.sendMessage(
         tab.id,
         { type: 'AUTO_DELETE_CHATS', payload: { confirmed: true, delay: settings.deletionDelay } },
-        (response) => {
+        async (response) => {
           if (chrome.runtime.lastError) {
             showStatus('Could not delete chats', 'error')
+            setIsAutoDeleting(false)
+            return
+          }
+          if (response?.upgradeRequired) {
+            showStatus('Auto Delete is a Pro feature. Upgrade to unlock.', 'error')
             setIsAutoDeleting(false)
             return
           }
@@ -245,6 +294,7 @@ function App() {
               failed > 0 ? 'error' : 'success'
             )
             setSelectedChats(new Set())
+            await refreshTier()
             handleScan()
           } else {
             showStatus(response?.error || 'Auto-delete failed', 'error')
@@ -256,6 +306,32 @@ function App() {
       showStatus('Error auto-deleting', 'error')
       setIsAutoDeleting(false)
     }
+  }
+
+  const handleActivateLicense = async () => {
+    if (!licenseInput.trim()) {
+      setLicenseMsg({ text: 'Please enter a license key', type: 'error' })
+      return
+    }
+
+    const data = await validateLicenseKey(licenseInput.trim())
+    if (!data) {
+      setLicenseMsg({ text: 'Invalid license key', type: 'error' })
+      return
+    }
+
+    saveLicense(data)
+    setLicense(data)
+    setLicenseInput('')
+    setLicenseMsg({ text: `Activated! Tier: ${data.tier.toUpperCase()}`, type: 'success' })
+    await refreshTier()
+  }
+
+  const handleDeactivateLicense = async () => {
+    saveLicense(null)
+    setLicense(null)
+    setLicenseMsg({ text: 'License deactivated', type: 'success' })
+    await refreshTier()
   }
 
   const updateFilterConfig = (updates: Partial<FilterConfig>) => {
@@ -298,6 +374,7 @@ function App() {
         <div className="gcc-header-left">
           <div className="gcc-logo">CC</div>
           <span className="gcc-title">ChatGPT Cleaner</span>
+          {tier === 'pro' && <span className="gcc-badge gcc-badge-pro">PRO</span>}
         </div>
         <div className="gcc-tabs">
           <button
@@ -314,6 +391,21 @@ function App() {
           </button>
         </div>
       </div>
+
+      {/* Usage bar (free tier only) */}
+      {tier === 'free' && (
+        <div className="gcc-usage-bar">
+          <span className="gcc-usage-text">
+            {usageRemaining} / {FREE_DAILY_DELETE_LIMIT} deletes left today
+          </span>
+          <button
+            className="gcc-upgrade-link"
+            onClick={() => setActiveTab('settings')}
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      )}
 
       {/* Status toast */}
       {status && (
@@ -422,14 +514,15 @@ function App() {
             </button>
             <div className="gcc-actions-right">
               <button
-                className="gcc-btn gcc-btn-danger"
+                className={`gcc-btn ${tier === 'pro' ? 'gcc-btn-danger' : 'gcc-btn-locked'}`}
                 onClick={handleAutoDelete}
                 disabled={isBusy || deletableChats === 0}
+                title={tier !== 'pro' ? 'Upgrade to Pro to use Auto Delete' : undefined}
               >
                 {isAutoDeleting ? (
                   <><span className="gcc-spinner" /> Deleting</>
                 ) : (
-                  <>Delete All ({deletableChats})</>
+                  <>Delete All ({deletableChats}){tier !== 'pro' && ' \u{1F512}'}</>
                 )}
               </button>
               <button
@@ -516,6 +609,55 @@ function App() {
       ) : (
         /* Settings */
         <div className="gcc-settings">
+          {/* License section */}
+          <div className="gcc-settings-group">
+            <div className="gcc-settings-title">
+              License
+              {tier === 'pro' && <span className="gcc-badge gcc-badge-pro" style={{ marginLeft: 8, fontSize: 10 }}>ACTIVE</span>}
+            </div>
+            {license ? (
+              <div className="gcc-license-active">
+                <div className="gcc-license-info">
+                  <span>Tier: <strong>{license.tier.toUpperCase()}</strong></span>
+                  <span>Email: {license.email}</span>
+                  {license.validUntil > 0 && (
+                    <span>Expires: {new Date(license.validUntil).toLocaleDateString()}</span>
+                  )}
+                </div>
+                <button className="gcc-btn gcc-btn-secondary" onClick={handleDeactivateLicense}>
+                  Deactivate
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="gcc-input-group">
+                  <label className="gcc-input-label">License key</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      value={licenseInput}
+                      onChange={(e) => setLicenseInput(e.target.value)}
+                      placeholder="GCC-..."
+                      className="gcc-input"
+                      style={{ flex: 1 }}
+                    />
+                    <button className="gcc-btn gcc-btn-primary" onClick={handleActivateLicense}>
+                      Activate
+                    </button>
+                  </div>
+                </div>
+                {licenseMsg && (
+                  <div className={`gcc-license-msg ${licenseMsg.type}`}>
+                    {licenseMsg.text}
+                  </div>
+                )}
+                <div className="gcc-input-hint">
+                  Don't have a key? <a href="https://chatgptcleaner.com/pricing" target="_blank" rel="noopener">Get Pro</a>
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="gcc-settings-group">
             <div className="gcc-settings-title">Protection</div>
             <label className="gcc-toggle">
@@ -566,36 +708,51 @@ function App() {
             </div>
           </div>
 
-          <div className="gcc-settings-group">
-            <div className="gcc-settings-title">Keywords</div>
-            <div className="gcc-input-group">
-              <label className="gcc-input-label">Keep keywords</label>
-              <input
-                type="text"
-                value={settings.filterConfig.keepKeywords.join(', ')}
-                onChange={(e) =>
-                  updateFilterConfig({
-                    keepKeywords: e.target.value.split(',').map((k) => k.trim()).filter(Boolean),
-                  })
-                }
-                placeholder="important, work, project"
-                className="gcc-input"
-              />
+          <div className={`gcc-settings-group ${tier !== 'pro' ? 'gcc-locked-section' : ''}`}>
+            <div className="gcc-settings-title">
+              Keywords
+              {tier !== 'pro' && <span className="gcc-pro-badge">PRO</span>}
             </div>
-            <div className="gcc-input-group">
-              <label className="gcc-input-label">Delete keywords</label>
-              <input
-                type="text"
-                value={settings.filterConfig.deleteKeywords.join(', ')}
-                onChange={(e) =>
-                  updateFilterConfig({
-                    deleteKeywords: e.target.value.split(',').map((k) => k.trim()).filter(Boolean),
-                  })
-                }
-                placeholder="test, temp, old"
-                className="gcc-input"
-              />
-            </div>
+            {tier !== 'pro' ? (
+              <div className="gcc-locked-overlay">
+                <div className="gcc-locked-text">
+                  Keyword filtering is a <strong>Pro</strong> feature.
+                  <br />
+                  <a href="https://chatgptcleaner.com/pricing" target="_blank" rel="noopener">Upgrade to unlock</a>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="gcc-input-group">
+                  <label className="gcc-input-label">Keep keywords</label>
+                  <input
+                    type="text"
+                    value={settings.filterConfig.keepKeywords.join(', ')}
+                    onChange={(e) =>
+                      updateFilterConfig({
+                        keepKeywords: e.target.value.split(',').map((k) => k.trim()).filter(Boolean),
+                      })
+                    }
+                    placeholder="important, work, project"
+                    className="gcc-input"
+                  />
+                </div>
+                <div className="gcc-input-group">
+                  <label className="gcc-input-label">Delete keywords</label>
+                  <input
+                    type="text"
+                    value={settings.filterConfig.deleteKeywords.join(', ')}
+                    onChange={(e) =>
+                      updateFilterConfig({
+                        deleteKeywords: e.target.value.split(',').map((k) => k.trim()).filter(Boolean),
+                      })
+                    }
+                    placeholder="test, temp, old"
+                    className="gcc-input"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="gcc-settings-group">

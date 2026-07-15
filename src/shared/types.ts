@@ -37,6 +37,24 @@ export interface DeletionProgress {
   error?: string
 }
 
+// Subscription tier
+export type Tier = 'free' | 'pro'
+
+// License data stored in chrome.storage
+export interface LicenseData {
+  key: string       // raw license key string
+  tier: Tier
+  email: string
+  validUntil: number // timestamp (ms), 0 = lifetime
+  activatedAt: number // timestamp (ms)
+}
+
+// Daily usage tracking
+export interface UsageData {
+  date: string       // YYYY-MM-DD
+  deletions: number  // chats deleted today
+}
+
 // Extension settings
 export interface Settings {
   filterConfig: FilterConfig
@@ -90,3 +108,7 @@ export const DEFAULT_FILTER_CONFIG: FilterConfig = {
   deleteKeywords: [],
   maxAgeDays: 0,
 }
+
+// Free tier constants
+export const FREE_DAILY_DELETE_LIMIT = 10
+export const PRO_DAILY_DELETE_LIMIT = Infinity
