@@ -614,6 +614,30 @@ body {
   vertical-align: middle;
 }
 
+/* ─── ETA ─── */
+.gcc-eta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--gcc-bg);
+  border-radius: 4px;
+  border: 1px solid var(--gcc-border-light);
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.gcc-eta-label {
+  font-weight: 500;
+  color: var(--gcc-text-muted);
+}
+
+.gcc-eta-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--gcc-text);
+}
+
 /* ─── Settings ─── */
 .gcc-settings {
   flex: 1;

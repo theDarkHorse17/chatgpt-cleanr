@@ -40,6 +40,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'chats' | 'settings'>('chats')
   const [currentFilter, setCurrentFilter] = useState<string>('all')
   const [deletionProgress, setDeletionProgress] = useState<DeletionProgress | null>(null)
+  const [deletionStartTime, setDeletionStartTime] = useState<number>(0)
 
   // Tier / license state
   const [tier, setTier] = useState<Tier>('free')
@@ -79,6 +80,7 @@ function App() {
         setDeletionProgress(message.payload.progress)
         setIsDeleting(true)
         setIsAutoDeleting(true)
+        setDeletionStartTime(Date.now())
       } else if (message.type === 'DELETE_COMPLETE' && message.payload?.progress) {
         setDeletionProgress(message.payload.progress)
         setTimeout(async () => {
@@ -375,6 +377,13 @@ function App() {
     ? Math.round((deletionProgress.completed / deletionProgress.total) * 100)
     : 0
 
+  // ETA calculation
+  const completedCount = deletionProgress?.completed || 0
+  const remainingCount = (deletionProgress?.total || 0) - completedCount - (deletionProgress?.failed || 0)
+  const elapsedMs = deletionStartTime > 0 ? Date.now() - deletionStartTime : 0
+  const avgMsPerChat = completedCount > 0 ? elapsedMs / completedCount : 0
+  const etaMs = remainingCount > 0 && avgMsPerChat > 0 ? avgMsPerChat * remainingCount : 0
+
   return (
     <div className="gcc-popup">
       {/* Header */}
@@ -597,6 +606,14 @@ function App() {
                   <span className="gcc-batch-elapsed">
                     {formatElapsedMs(deletionProgress.batchElapsedMs || 0)}
                   </span>
+                </div>
+              )}
+
+              {/* ETA */}
+              {completedCount > 0 && remainingCount > 0 && deletionProgress.status !== 'completed' && (
+                <div className="gcc-eta">
+                  <span className="gcc-eta-label">Time remaining</span>
+                  <span className="gcc-eta-value">{formatElapsedMs(etaMs)}</span>
                 </div>
               )}
 
